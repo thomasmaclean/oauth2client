@@ -33,6 +33,7 @@ from oauth2client import _helpers
 from oauth2client import client
 from oauth2client import file as file_module
 from oauth2client import transport
+from oauth2client.contrib import multiprocess_file_storage
 from tests import http_mock
 
 try:
@@ -270,3 +271,19 @@ class OAuth2ClientFileTests(unittest.TestCase):
         if os.name == 'posix':  # pragma: NO COVER
             mode = os.stat(FILENAME).st_mode
             self.assertEquals('0o600', oct(stat.S_IMODE(mode)))
+
+    def test_multiprocess_file_storage_credestore_permissions(self):
+        credentials = 'dummy-string'
+
+        storage = multiprocess_file_storage.MultiprocessFileStorage(
+            FILENAME,
+            credentials
+        )
+        storage.acquire_lock()
+        storage.release_lock()
+
+        self.assertTrue(os.path.exists(FILENAME))
+
+        if os.name == 'posix':  # pragma: NO COVER
+          mode = os.stat(FILENAME).st_mode
+          self.assertEquals('0o600', oct(stat.S_IMODE(mode)))
